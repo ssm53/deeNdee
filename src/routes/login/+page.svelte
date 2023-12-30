@@ -3,7 +3,7 @@
 	import { goto } from '$app/navigation';
 	import Spinner from '../../spinner/spinner.svelte';
 	import { loading } from '../../stores/store';
-	// import { loginSucAlert, showLoginAlert } from '../../utils/alert';
+	import { logInSucAlert, logInFailedAlert } from '../../utils/alert';
 
 	let formErrors = {};
 
@@ -29,20 +29,20 @@
 			});
 			// Successful login, navigate to the home page
 			goto('/');
-			// loginSucAlert();
+			logInSucAlert();
 		} else {
 			loading.update((value) => {
 				return false;
 			});
-			// showLoginAlert();
-
-			// showAlert = true;
+			logInFailedAlert;
 			if (res.res.error) {
 				formErrors = res.res.error; // Update formErrors with validation errors
 			}
 		}
 	}
 </script>
+
+<Spinner />
 
 <div class=" bg-black h-screen">
 	<Spinner />

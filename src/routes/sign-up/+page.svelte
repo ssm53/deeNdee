@@ -2,8 +2,9 @@
 	import { PUBLIC_BACKEND_BASE_URL } from '$env/static/public';
 	import { goto } from '$app/navigation';
 	import { authenticateUser } from '../../utils/auth';
-	import { loggedIn } from '../../stores/store';
-	// import { signUpAlert } from '../../../utils/alert.js';
+	import { loggedIn, loading } from '../../stores/store';
+	import Spinner from '../../spinner/spinner.svelte';
+	import { signUpSucAlert, signUpFailedAlert } from '../../utils/alert';
 	let formErrors = {};
 
 	function postSignUp() {
@@ -11,11 +12,16 @@
 			return true;
 		});
 		goto('/');
-		// signUpAlert();
+		signUpSucAlert();
 	}
 
 	async function createUser(evt) {
 		evt.preventDefault();
+
+		// spinner shits
+		loading.update((value) => {
+			return true;
+		});
 
 		// if (evt.target['password'].value != evt.target['password-confirmation'].value) {
 		// 	formErrors['password'] = { message: 'Password confirmation does not match' };
@@ -41,12 +47,26 @@
 
 			if (res.success) {
 				console.log('signup success');
+				// spinner shits
+				loading.update((value) => {
+					return false;
+				});
 				postSignUp();
 			} else {
+				// spinner shits
+				loading.update((value) => {
+					return false;
+				});
+				signUpFailedAlert();
 				throw 'Sign up succeeded but authentication failed';
 			}
 		} else {
 			const res2 = await resp.json();
+			// spinner shits
+			loading.update((value) => {
+				return false;
+			});
+			signUpFailedAlert();
 			// formErrors = res.data;
 			if (res2.error) {
 				formErrors = res2.error; // Update formErrors with validation errors
@@ -55,6 +75,8 @@
 		}
 	}
 </script>
+
+<Spinner />
 
 <div class=" bg-black h-screen py-10">
 	<h1 class="text-center text-xl text-white">

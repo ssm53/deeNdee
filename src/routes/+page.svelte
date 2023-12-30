@@ -1,9 +1,11 @@
 <script>
 	import { PUBLIC_BACKEND_BASE_URL } from '$env/static/public';
 	import { onMount } from 'svelte';
-	import { onMountstore, loggedIn } from '../stores/store';
+	import { onMountstore, loggedIn, loading } from '../stores/store';
 	import { redirect } from '@sveltejs/kit';
 	import { goto } from '$app/navigation';
+	import Spinner from '../spinner/spinner.svelte';
+	import { redirectAlert, replyAlert } from '../utils/alert';
 
 	let inputArray = [];
 	let replyArray = [];
@@ -18,6 +20,7 @@
 	export async function clickStart() {
 		try {
 			if (logIO == false) {
+				redirectAlert();
 				goto('/login');
 			} else {
 				let nonHiddenModal = document.querySelector('.home-page');
@@ -45,6 +48,10 @@
 	};
 
 	export async function getReply() {
+		// spinner shits
+		loading.update((value) => {
+			return true;
+		});
 		inputArray.push(formData.input);
 		const resp = await fetch(PUBLIC_BACKEND_BASE_URL + `/get-reply`, {
 			method: 'POST',
@@ -58,6 +65,10 @@
 		const res = await resp.json();
 
 		if (resp.status == 200) {
+			// spinner shits
+			loading.update((value) => {
+				return false;
+			});
 			onMountstore.set(true);
 			x = res.reply.text;
 			replyArray = [...replyArray, x];
@@ -66,6 +77,11 @@
 			console.log(res.reply.text);
 			// do alerts and spinners
 		} else {
+			// spinner shits
+			loading.update((value) => {
+				return false;
+			});
+			replyAlert();
 			// do some error handling here
 			inputArray.pop();
 			// do alerts and spinners
@@ -90,6 +106,8 @@
 	}
 </script>
 
+<Spinner />
+
 <!-- Beginning -->
 <div class="bg-black min-h-screen flex flex-col items-center justify-center">
 	<!-- MODAL 1 -->
@@ -102,34 +120,34 @@
 		<div
 			class="information flex flex-col justify-items-center text-black h-2/3 overflow-y-auto p-4"
 		>
-			<p>
-				Title: The Enchanted Forest's Dilemma In the heart of the mystical Eldrath Woods lies the
-				Enchanted Forest, a realm where magic intertwines with nature in harmonious balance. This
-				sacred grove has been a haven for magical creatures and a wellspring of unimaginable power
-				for countless centuries. It has long stood as a testament to the delicate equilibrium
-				between the ethereal forces that govern its existence. However, a foreboding menace now
-				threatens to shatter this balance. The ancient Eldrath Tree, the revered guardian of the
+			<p style="margin-bottom: 10px;">
+				Title: The Enchanted Forest's Dilemma <br />In the heart of the mystical Eldrath Woods lies
+				the Enchanted Forest, a realm where magic intertwines with nature in harmonious balance.
+				This sacred grove has been a haven for magical creatures and a wellspring of unimaginable
+				power for countless centuries. It has long stood as a testament to the delicate equilibrium
+				between the ethereal forces that govern its existence.<br /> However, a foreboding menace
+				now threatens to shatter this balance. The ancient Eldrath Tree, the revered guardian of the
 				Enchanted Forest, has succumbed to a profound slumber, casting a shadow over the
 				once-vibrant expanse. Whispers carried by the wind speak of a malevolent force that has
 				infiltrated the sacred grove, a malevolence that drains the very life force from the magical
-				inhabitants that call the forest home. As a daring adventurer, you stand on the verge of
-				this enchanted realm, the air thick with the palpable weight of uncertainty. The ethereal
+				inhabitants that call the forest home.<br /> As a daring adventurer, you stand on the verge
+				of this enchanted realm, the air thick with the palpable weight of uncertainty. The ethereal
 				glow that once bathed the forest in a mystical radiance has waned, replaced by an ominous
 				and unsettling shadow. The towering trees, once lively and animated, now stand as silent
-				witnesses to the encroaching threat. The scenario unfolds as you enter the dense thicket at
-				the forest's entrance. The ancient trees, gnarled and wise, whisper secrets of the forest's
-				plight. Their voices, carried by the gentle rustle of leaves, beckon you to embark on a
-				quest to save the Enchanted Forest. The urgency of the situation resonates with each step
-				you take, a pressing call to action from the very heart of the woods. Before you, the forest
-				presents three diverging paths, each leading deeper into its mystical core. The choices you
-				make will shape the destiny of this sacred realm, and the mystical creatures within watch
-				with a collective bated breath, hoping that the balance can be restored. The Whispering
-				Grove: To the right, the Whispering Grove beckons—an ancient enclave where the trees share
-				their timeless knowledge. Will you listen to the wisdom of the ancient spirits, hoping to
-				unveil the source of the mysterious affliction? Perhaps within their whispers, the key to
-				awakening the Eldrath Tree lies hidden. The Forgotten Hollows: Straight ahead, a mysterious
-				aura surrounds the path leading to the Forgotten Hollows, a secluded and mystical area
-				untouched by most adventurers. Legends tell of forgotten magic buried deep within its
+				witnesses to the encroaching threat.<br /> The scenario unfolds as you enter the dense
+				thicket at the forest's entrance. The ancient trees, gnarled and wise, whisper secrets of
+				the forest's plight. Their voices, carried by the gentle rustle of leaves, beckon you to
+				embark on a quest to save the Enchanted Forest. The urgency of the situation resonates with
+				each step you take, a pressing call to action from the very heart of the woods. Before you,
+				the forest presents three diverging paths, each leading deeper into its mystical core. The
+				choices you make will shape the destiny of this sacred realm, and the mystical creatures
+				within watch with a collective bated breath, hoping that the balance can be restored. The
+				Whispering Grove: To the right, the Whispering Grove beckons—an ancient enclave where the
+				trees share their timeless knowledge. Will you listen to the wisdom of the ancient spirits,
+				hoping to unveil the source of the mysterious affliction? Perhaps within their whispers, the
+				key to awakening the Eldrath Tree lies hidden. The Forgotten Hollows: Straight ahead, a
+				mysterious aura surrounds the path leading to the Forgotten Hollows, a secluded and mystical
+				area untouched by most adventurers. Legends tell of forgotten magic buried deep within its
 				depths, waiting to be rediscovered. Will you venture into the unknown, hoping to unearth
 				ancient secrets that could save the Eldrath Tree? The Mystic Cascade: To the left, the sound
 				of cascading water draws your attention to the Mystic Cascade. A powerful and ancient water
@@ -155,29 +173,29 @@
 				trees, gnarled and wise, whisper secrets of the forest's plight. Their voices, carried by
 				the gentle rustle of leaves, beckon you to embark on a quest to save the Enchanted Forest.
 				The urgency of the situation resonates with each step you take, a pressing call to action
-				from the very heart of the woods. Before you, the forest presents three diverging paths,
-				each leading deeper into its mystical core. The choices you make will shape the destiny of
-				this sacred realm, and the mystical creatures within watch with a collective bated breath,
-				hoping that the balance can be restored. The Whispering Grove: To the right, the Whispering
-				Grove beckons—an ancient enclave where the trees share their timeless knowledge. Will you
-				listen to the wisdom of the ancient spirits, hoping to unveil the source of the mysterious
-				affliction? Perhaps within their whispers, the key to awakening the Eldrath Tree lies
-				hidden. The Forgotten Hollows: Straight ahead, a mysterious aura surrounds the path leading
-				to the Forgotten Hollows, a secluded and mystical area untouched by most adventurers.
-				Legends tell of forgotten magic buried deep within its depths, waiting to be rediscovered.
-				Will you venture into the unknown, hoping to unearth ancient secrets that could save the
-				Eldrath Tree? The Mystic Cascade: To the left, the sound of cascading water draws your
-				attention to the Mystic Cascade. A powerful and ancient water source, rumored to hold the
-				essence of the forest's magic. Do you dare to approach the cascade, seeking the untapped
-				magical energy that may have the potential to revitalize the Eldrath Tree? As you
-				contemplate your choice, the forest awaits your decision. The destiny of the Enchanted
-				Forest hangs in the balance, and the echoes of your chosen path resonate through the ancient
-				trees. The quest to save this mystical realm begins with a single step. \n
+				from the very heart of the woods.<br /> Before you, the forest presents three diverging
+				paths, each leading deeper into its mystical core. The choices you make will shape the
+				destiny of this sacred realm, and the mystical creatures within watch with a collective
+				bated breath, hoping that the balance can be restored.<br /> The Whispering Grove: To the
+				right, the Whispering Grove beckons—an ancient enclave where the trees share their timeless
+				knowledge. Will you listen to the wisdom of the ancient spirits, hoping to unveil the source
+				of the mysterious affliction? Perhaps within their whispers, the key to awakening the
+				Eldrath Tree lies hidden.<br />
+				The Forgotten Hollows: Straight ahead, a mysterious aura surrounds the path leading to the Forgotten
+				Hollows, a secluded and mystical area untouched by most adventurers. Legends tell of forgotten
+				magic buried deep within its depths, waiting to be rediscovered. Will you venture into the unknown,
+				hoping to unearth ancient secrets that could save the Eldrath Tree?<br /> The Mystic Cascade:
+				To the left, the sound of cascading water draws your attention to the Mystic Cascade. A powerful
+				and ancient water source, rumored to hold the essence of the forest's magic. Do you dare to approach
+				the cascade, seeking the untapped magical energy that may have the potential to revitalize the
+				Eldrath Tree? As you contemplate your choice, the forest awaits your decision. The destiny of
+				the Enchanted Forest hangs in the balance, and the echoes of your chosen path resonate through
+				the ancient trees. The quest to save this mystical realm begins with a single step.
 			</p>
 
 			{#if replyArray.length != 0}
 				{#each replyArray as reply}
-					<p>{reply}</p>
+					<p style="margin-bottom: 20px;">{reply}</p>
 				{/each}
 			{/if}
 		</div>
