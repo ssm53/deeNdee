@@ -5,11 +5,20 @@
 	import { redirect } from '@sveltejs/kit';
 	import { goto } from '$app/navigation';
 	import Spinner from '../spinner/spinner.svelte';
-	import { redirectAlert, replyAlert } from '../utils/alert';
+	import {
+		redirectAlert,
+		replyAlert,
+		imageGenlimitReachedAlert,
+		imageGenFailedAlert
+	} from '../utils/alert';
+	import { getUserId } from '../utils/auth';
 
 	let inputArray = [];
 	let replyArray = [];
 	let x;
+	let answer = '';
+	let selectedSize = '512x512';
+	const userId = getUserId();
 
 	let logIO;
 	loggedIn.subscribe((value) => {
@@ -34,12 +43,113 @@
 		}
 	}
 
+	async function clickSeeImage() {
+		loading.set(true);
+
+		// here we're doing api call to get no of prompts remaining, to see if user can do api call or not. if number is <5,, then can
+		const resp2 = await fetch(PUBLIC_BACKEND_BASE_URL + `/prompts-remaining/${userId}`, {
+			method: 'GET'
+		});
+
+		const res2 = await resp2.json();
+		const promptsRemaining = Number(res2.promptsRemaining);
+		// no of prompt remaining api ends here
+
+		// here is to get the prompt!
+		let begPrompt =
+			"I need you to generate an image based on this situation from a text-based game. The beginning(prologue) of the game is as such Title: The Enchanted Forest's Dilemma In the heart of the mystical Eldrath Woods lies the Enchanted Forest, a realm where magic intertwines with nature in harmonious balance. This sacred grove has been a haven for magical creatures and a wellspring of unimaginable power for countless centuries. It has long stood as a testament to the delicate equilibrium between the ethereal forces that govern its existence. However, a foreboding menace now threatens to shatter this balance. The ancient Eldrath Tree, the revered guardian of the Enchanted Forest, has succumbed to a profound slumber, casting a shadow over the once-vibrant expanse. Whispers carried by the wind speak of a malevolent force that has infiltrated the sacred grove, a malevolence that drains the very life force from the magical inhabitants that call the forest home. As a daring adventurer, you stand on the verge of this enchanted realm, the air thick with the palpable weight of uncertainty. The ethereal glow that once bathed the forest in a mystical radiance has waned, replaced by an ominous and unsettling shadow. The towering trees, once lively and animated, now stand as silent witnesses to the encroaching threat. The scenario unfolds as you enter the dense thicket at the forest's entrance. The ancient trees, gnarled and wise, whisper secrets of the forest's plight. Their voices, carried by the gentle rustle of leaves, beckon you to embark on a quest to save the Enchanted Forest. The urgency of the situation resonates with each step you take, a pressing call to action from the very heart of the woods. Before you, the forest presents three diverging paths, each leading deeper into its mystical core. The choices you make will shape the destiny of this sacred realm, and the mystical creatures within watch with a collective bated breath, hoping that the balance can be restored. The Whispering Grove: To the right, the Whispering Grove beckons—an ancient enclave where the trees share their timeless knowledge. Will you listen to the wisdom of the ancient spirits, hoping to unveil the source of the mysterious affliction? Perhaps within their whispers, the key to awakening the Eldrath Tree lies hidden. The Forgotten Hollows: Straight ahead, a mysterious aura surrounds the path leading to the Forgotten Hollows, a secluded and mystical area untouched by most adventurers. Legends tell of forgotten magic buried deep within its depths, waiting to be rediscovered. Will you venture into the unknown, hoping to unearth ancient secrets that could save the Eldrath Tree? The Mystic Cascade: To the left, the sound of cascading water draws your attention to the Mystic Cascade. A powerful and ancient water source, rumored to hold the essence of the forest's magic. Do you dare to approach the cascade, seeking the untapped magical energy that may have the potential to revitalize the Eldrath Tree? As you contemplate your choice, the forest awaits your decision. The destiny of the Enchanted Forest hangs in the balance, and the echoes of your chosen path resonate through the ancient trees. The quest to save this mystical realm begins with a single step. that's the end of the prologue. now, player inputs their decisions/actions and the game master replies with the appropriate answer to continue the game. Basically the game master and the player have a conversation. Below is the conversation history between the game master and the player. Please generate an images based on the scenario and the conversation between player and game master";
+
+		let conversationHistory = '';
+
+		const minLength = Math.min(inputArray.length, replyArray.length);
+
+		for (let i = 0; i < minLength; i++) {
+			conversationHistory = conversationHistory.concat(`player: ${inputArray[i]}\n`);
+			conversationHistory = conversationHistory.concat(`game master: ${replyArray[i]}\n`);
+		}
+
+		// If one array is longer than the other, append the remaining elements
+		if (inputArray.length > minLength) {
+			for (let i = minLength; i < inputArray.length; i++) {
+				conversationHistory = conversationHistory.concat(`player: ${inputArray[i]}\n`);
+			}
+		} else if (replyArray.length > minLength) {
+			for (let i = minLength; i < replyArray.length; i++) {
+				conversationHistory = conversationHistory.concat(`game master: ${replyArray[i]}\n`);
+			}
+		}
+
+		// Now conversationHistory contains the dynamic conversation history
+		let artPrompt = begPrompt.concat(' + ', conversationHistory);
+		// YAY we finally got the art prompt!
+
+		// now let's do our request
+		if (promptsRemaining > 0) {
+			try {
+				const resp = await fetch(`${PUBLIC_BACKEND_BASE_URL}` + '/get-art', {
+					method: 'POST',
+					mode: 'cors',
+					headers: {
+						'Content-Type': 'application/json'
+						// Authorization: getAccessTokenFromLocalStorage()
+					},
+					body: JSON.stringify({ prompt: artPrompt, size: selectedSize, userId: userId })
+				});
+				if (resp.status === 200) {
+					loading.set(false);
+					const res = await resp.json();
+					// next we need to do hidden modal and shit
+					let nonHiddenModal = document.querySelector('.game-space');
+					nonHiddenModal.classList.add('hidden');
+					let hiddenModal = document.querySelector('.image-space');
+					hiddenModal.classList.remove('hidden');
+
+					console.log(res);
+					answer = res.text[0].url;
+					// here we do api call to decrement no of prompts of this user by 1
+					const resp2 = await fetch(`${PUBLIC_BACKEND_BASE_URL}` + `/dec-no-of-prompts/${userId}`, {
+						method: 'POST',
+						mode: 'cors',
+						headers: {
+							'Content-Type': 'application/json'
+							// Authorization: getAccessTokenFromLocalStorage()
+						}
+					});
+				} else {
+					loading.set('false');
+					imageGenFailedAlert();
+					// Handle other status codes here
+					console.error('Error:', resp.status);
+				}
+			} catch (error) {
+				loading.set(false);
+				// Handle network errors or exceptions
+				console.error('Error:', error);
+				// do cannot give image alert
+			} finally {
+				loading.set(false);
+				console.log('aiyo');
+			}
+		} else {
+			// do image gen limit reached alert
+			imageGenlimitReachedAlert();
+			console.log('limit reached');
+		}
+	}
+
 	export async function clickEndGame() {
 		inputArray = [];
 		replyArray = [];
 		let nonHiddenModal = document.querySelector('.game-space');
 		nonHiddenModal.classList.add('hidden');
 		let hiddenModal = document.querySelector('.home-page');
+		hiddenModal.classList.remove('hidden');
+	}
+
+	export async function clickCloseModal() {
+		let nonHiddenModal = document.querySelector('.image-space');
+		nonHiddenModal.classList.add('hidden');
+		let hiddenModal = document.querySelector('.game-space');
 		hiddenModal.classList.remove('hidden');
 	}
 
@@ -219,7 +329,19 @@
 			<button type="button" class="btn btn-sm variant-filled-primary" on:click={clickEndGame}
 				>End Game</button
 			>
+			<button type="button" class="btn btn-sm variant-filled-primary" on:click={clickSeeImage}
+				>See Image</button
+			>
 		</div>
+	</div>
+
+	<!-- MODAL 3 -->
+	<div class=" w-screen flex-col image-space hidden bg-black flex justify-center items-center">
+		<!-- svelte-ignore a11y-img-redundant-alt -->
+		<img src={answer} alt="a picture" />
+		<button type="button" class="btn btn-sm variant-filled-primary" on:click={clickCloseModal}
+			>Close</button
+		>
 	</div>
 </div>
 

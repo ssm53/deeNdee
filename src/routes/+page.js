@@ -20,13 +20,17 @@
 // do image generation
 
 // image generation
-// first do button 'see Image'
-// once that is clicked, we do request to image generation api.
-// for this request, the prompt will be all us telling the scenario + prologue + the inputs and the replies one after another
-// then we do backend for this
-// once there is a response, we do do hidden modal etc and show the image right in the middle of the page
+// first do button 'see Image' - done
+// once that is clicked, we do request to image generation api. - sorta done
+// for this request, the prompt will be all us telling the scenario + prologue + the inputs and the replies one after another - done
+// then we do backend for this - done
+// for each user do a database of images left - they all start with 5 images. - done
+// need to calc prompts remaining response and backend
+// need to reduce prompts remaining by 1 response and backend
+// once there is a response, we do do hidden modal etc and show the image right in the middle of the page. also now, the images left reduces by 1.
 // have a close button to close modal
-// do alerts just incase cant get image generated
+// for each user do a database of images left - they all start with 3 images.
+// do alerts just incase cant get image generated or all free ones have been used up
 
 // FURTHER THINGS TO DO
 // 1. forgot password

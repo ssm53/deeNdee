@@ -62,3 +62,18 @@ export function replyAlert() {
 	alertMessage.set('Unable to give you a reply, sorry!');
 	resetTimeout();
 }
+
+// image gen alerts
+// limit reached
+export function imageGenlimitReachedAlert() {
+	warningAlert.set(true);
+	alertMessage.set('Free image generation limit has been reached');
+	resetTimeout();
+}
+
+// issue in generation
+export function imageGenFailedAlert() {
+	warningAlert.set(true);
+	alertMessage.set('Unable to generate image');
+	resetTimeout();
+}
