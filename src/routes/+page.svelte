@@ -1,19 +1,34 @@
 <script>
 	import { PUBLIC_BACKEND_BASE_URL } from '$env/static/public';
 	import { onMount } from 'svelte';
-	import { onMountstore } from '../stores/store';
+	import { onMountstore, loggedIn } from '../stores/store';
+	import { redirect } from '@sveltejs/kit';
+	import { goto } from '$app/navigation';
 
 	let inputArray = [];
 	let replyArray = [];
 	let x;
 
-	console.log(replyArray);
+	let logIO;
+	loggedIn.subscribe((value) => {
+		logIO = value;
+	});
+	console.log(logIO);
 
 	export async function clickStart() {
-		let nonHiddenModal = document.querySelector('.home-page');
-		nonHiddenModal.classList.add('hidden');
-		let hiddenModal = document.querySelector('.game-space');
-		hiddenModal.classList.remove('hidden');
+		try {
+			if (logIO == false) {
+				goto('/login');
+			} else {
+				let nonHiddenModal = document.querySelector('.home-page');
+				nonHiddenModal.classList.add('hidden');
+				let hiddenModal = document.querySelector('.game-space');
+				hiddenModal.classList.remove('hidden');
+			}
+		} catch (error) {
+			// Handle the redirection error here
+			console.error('Redirection error:', error);
+		}
 	}
 
 	export async function clickEndGame() {
@@ -53,6 +68,7 @@
 		} else {
 			// do some error handling here
 			inputArray.pop();
+			// do alerts and spinners
 			console.log('error replying you matey');
 		}
 	}
@@ -181,6 +197,9 @@
 				on:click={() => {
 					getReply(formData);
 				}}>Add reply</button
+			>
+			<button type="button" class="btn btn-sm variant-filled-primary" on:click={clickEndGame}
+				>End Game</button
 			>
 		</div>
 	</div>

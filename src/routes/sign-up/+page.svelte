@@ -46,8 +46,12 @@
 				throw 'Sign up succeeded but authentication failed';
 			}
 		} else {
-			const res = await resp.json();
-			formErrors = res.data;
+			const res2 = await resp.json();
+			// formErrors = res.data;
+			if (res2.error) {
+				formErrors = res2.error; // Update formErrors with validation errors
+				console.log(formErrors);
+			}
 		}
 	}
 </script>
@@ -73,11 +77,11 @@
 					placeholder="johndoe"
 					class="input input-bordered w-full text-white bg-black border-4 border-pink-500"
 				/>
-				<!-- {#if 'username' in formErrors}
-				<label class="label" for="username">
-					<span class="label-text-alt text-red-500">{formErrors['username'].message}</span>
-				</label>
-			{/if} -->
+				{#if 'username' in formErrors}
+					<label class="label" for="username">
+						<span class="label-text-alt text-red-500">{formErrors.username}</span>
+					</label>
+				{/if}
 			</div>
 
 			<div class="form-control w-full">
@@ -91,11 +95,11 @@
 					class="input input-bordered w-full text-white bg-black border-4 border-pink-500"
 					required
 				/>
-				<!-- {#if 'password' in formErrors}
-				<label class="label" for="password">
-					<span class="label-text-alt text-red-500">{formErrors['password'].message}</span>
-				</label>
-			{/if} -->
+				{#if 'password' in formErrors}
+					<label class="label" for="password">
+						<span class="label-text-alt text-red-500">{formErrors.password}</span>
+					</label>
+				{/if}
 			</div>
 
 			<div class="form-control w-full mt-4">

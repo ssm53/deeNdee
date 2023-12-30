@@ -20,9 +20,9 @@
 		username = event.target.username.value;
 		password = event.target.password.value;
 
-		const { success } = await authenticateUser(username, password);
+		const res = await authenticateUser(username, password);
 
-		if (success) {
+		if (res.success) {
 			// spinner shits
 			loading.update((value) => {
 				return false;
@@ -37,6 +37,9 @@
 			// showLoginAlert();
 
 			// showAlert = true;
+			if (res.res.error) {
+				formErrors = res.res.error; // Update formErrors with validation errors
+			}
 		}
 	}
 </script>
@@ -65,7 +68,7 @@
 				/>
 				{#if 'username' in formErrors}
 					<label class="label" for="username">
-						<span class="label-text-alt text-red-500">{formErrors['username'].message}</span>
+						<span class="label-text-alt text-red-500">{formErrors.username}</span>
 					</label>
 				{/if}
 			</div>
@@ -83,7 +86,7 @@
 				/>
 				{#if 'password' in formErrors}
 					<label class="label" for="password">
-						<span class="label-text-alt text-red-500">{formErrors['password'].message}</span>
+						<span class="label-text-alt text-red-500">{formErrors.password}</span>
 					</label>
 				{/if}
 			</div>
