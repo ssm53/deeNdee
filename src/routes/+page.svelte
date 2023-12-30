@@ -1,5 +1,13 @@
 <script>
 	import { PUBLIC_BACKEND_BASE_URL } from '$env/static/public';
+	import { onMount } from 'svelte';
+	import { onMountstore } from '../stores/store';
+
+	let inputArray = [];
+	let replyArray = [];
+	let x;
+
+	console.log(replyArray);
 
 	export async function clickStart() {
 		let nonHiddenModal = document.querySelector('.home-page');
@@ -8,11 +16,9 @@
 		hiddenModal.classList.remove('hidden');
 	}
 
-	export async function userInputted() {
-		console.log('hello');
-	}
-
 	export async function clickEndGame() {
+		inputArray = [];
+		replyArray = [];
 		let nonHiddenModal = document.querySelector('.game-space');
 		nonHiddenModal.classList.add('hidden');
 		let hiddenModal = document.querySelector('.home-page');
@@ -24,6 +30,7 @@
 	};
 
 	export async function getReply() {
+		inputArray.push(formData.input);
 		const resp = await fetch(PUBLIC_BACKEND_BASE_URL + `/get-reply`, {
 			method: 'POST',
 			mode: 'cors',
@@ -36,13 +43,34 @@
 		const res = await resp.json();
 
 		if (resp.status == 200) {
+			onMountstore.set(true);
+			x = res.reply.text;
+			replyArray = [...replyArray, x];
+			console.log(replyArray);
 			console.log('success');
-			console.log(res);
+			console.log(res.reply.text);
+			// do alerts and spinners
 		} else {
 			// do some error handling here
-			console.log(res);
+			inputArray.pop();
 			console.log('error replying you matey');
 		}
+	}
+
+	// Automatically scroll to the bottom of the information div when replies are added
+	function scrollToBottom() {
+		const informationDiv = document.querySelector('.information');
+		informationDiv.scrollTop = informationDiv.scrollHeight;
+	}
+
+	// Call getReply when the component is mounted
+	if ($onMountstore == false) {
+		console.log('dont show anything yet');
+	} else {
+		onMount(async () => {
+			await getReply();
+			scrollToBottom();
+		});
 	}
 </script>
 
@@ -130,6 +158,12 @@
 				Forest hangs in the balance, and the echoes of your chosen path resonate through the ancient
 				trees. The quest to save this mystical realm begins with a single step. \n
 			</p>
+
+			{#if replyArray.length != 0}
+				{#each replyArray as reply}
+					<p>{reply}</p>
+				{/each}
+			{/if}
 		</div>
 
 		<div class=" user-input fixed bottom-0 w-full bg-white p-4">
@@ -149,48 +183,6 @@
 				}}>Add reply</button
 			>
 		</div>
-
-		<!-- <form
-			on:submit|preventDefault={() => {
-				userInputted;
-			}}
-			class="w-1/2 bg-white shadow-md rounded-lg p-8"
-		>
-			<div class="mb-6">
-				<label for="reason" class="block text-gray-700 text-sm font-bold mb-2">
-					Reason for visit
-				</label>
-				<input
-					type="text"
-					name="reason"
-					placeholder="Enter reason"
-					class="block w-full rounded-md py-2 px-3 border border-gray-300"
-				/>
-
-				<label for="doctor" class="block text-gray-700 text-sm font-bold mb-2"> Doctor </label>
-				<input
-					type="text"
-					name="doctor"
-					placeholder="Enter doctor in charge"
-					class="block w-full rounded-md py-2 px-3 border border-gray-300"
-				/>
-
-				<div class="flex justify-end">
-					<button
-						class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-md"
-						type="submit"
-					>
-						Answer
-					</button>
-					<button
-						class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-md"
-						on:click={clickEndGame}
-					>
-						End Game
-					</button>
-				</div>
-			</div>
-		</form> -->
 	</div>
 </div>
 
