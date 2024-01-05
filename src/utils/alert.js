@@ -77,3 +77,10 @@ export function imageGenFailedAlert() {
 	alertMessage.set('Unable to generate image');
 	resetTimeout();
 }
+
+// game restarted
+export function gameRestarted() {
+	warningAlert.set(true);
+	alertMessage.set('Game restarted');
+	resetTimeout();
+}

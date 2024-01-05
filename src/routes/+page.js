@@ -32,6 +32,14 @@
 // for each user do a database of images left - they all start with 3 images.
 // do alerts just incase cant get image generated or all free ones have been used up
 
+// allowing memory
+// when user clicks get reply, a new file is added with the content, and they can play the game. - DONE
+// now check if a user adds more replies, is another file getting added? if not, then nothng to do here - DONE
+// but what is happening now, is each time a user replies, it is creating that new file. instead if there already is a file with that name, we should only append it! - DONE
+// if they reload, the file still stays, but they need to be able to come back to the game. so for this just take away the start button la - DONE
+// so they can reload and continue the game. great! - DONE
+// now, when a user logs out or ends the game, then the file will be deleted
+
 // FURTHER THINGS TO DO
 // 1. forgot password
 // 2. sendgrid email
